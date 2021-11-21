@@ -1,37 +1,73 @@
-import { Suspense, lazy } from "react";
-// import {  useSelector } from "react-redux";
+import React, { Component, Suspense, lazy } from "react";
 import { Switch } from "react-router-dom";
-import AppBar from "./components/AppBar";
-import PrivateRoute from "./components/PrivateRoute";
-import PublicRoute from "./components/PublicRoute";
-// import { authOperations, authSelectors } from "./redux/auth";
-import "./App.css";
+import { connect } from "react-redux";
 
-const HomeView = lazy(() => import("./views/HomeView"));
-const RegisterView = lazy(() => import("./views/RegisterView"));
-const LogInView = lazy(() => import("./views/LogInView.js"));
-const ContactsView = lazy(() => import("./views/ContactsView"));
+import { getCurrentUser } from "./redux/auth/auth-operations";
+import path from "./routesPath";
 
-export default function App() {
-	return (
-		<>
-			<AppBar />
-			<Switch>
-				<Suspense fallback={<p>Загружаем...</p>}>
-					<PublicRoute exact path="/">
-						<HomeView />
-					</PublicRoute>
-					<PublicRoute exact path="/register" restricted>
-						<RegisterView />
-					</PublicRoute>
-					<PublicRoute exact path="/login" redirectTo="/contacts" restricted>
-						<LogInView />
-					</PublicRoute>
-					<PrivateRoute path="/contacts" redirectTo="/login">
-						<ContactsView />
-					</PrivateRoute>
-				</Suspense>
-			</Switch>
-		</>
-	);
+import Container from "./components/Container/Container";
+import PublicRoute from "./components/PublicRoute/PublicRoute";
+import PrivateRoute from "./components/PrivateRoute/PrivateRoute";
+import AppBar from "./components/AppBar/AppBar";
+
+import "./styles.css";
+
+const HomePage = lazy(() =>
+	import("./views/HomeView.js" /*webpackChunkName: 'home' */)
+);
+const Registration = lazy(() =>
+	import("./views/RegisterView" /*webpackChunkName: 'registration' */)
+);
+const LogIn = lazy(() =>
+	import("./views/LogInView.js" /*webpackChunkName: 'logIn' */)
+);
+
+const Contacts = lazy(() =>
+	import("./views/ContactsView.js" /*webpackChunkName: 'contacts' */)
+);
+
+class App extends Component {
+	componentDidMount() {
+		this.props.onGetCurrentUser();
+	}
+
+	render() {
+		return (
+			<>
+				<div>
+					<AppBar />
+					<Container>
+						<Suspense fallback={<h1>Loading..</h1>}>
+							<Switch>
+								<PublicRoute exact path={path.home} component={HomePage} />
+								<PrivateRoute
+									path={path.contacts}
+									redirectTo={path.login}
+									component={Contacts}
+								/>
+								<PublicRoute
+									path={path.login}
+									restricted
+									redirectTo={path.contacts}
+									component={LogIn}
+								/>
+								<PublicRoute
+									path={path.registration}
+									restricted
+									redirectTo={path.contacts}
+									component={Registration}
+								/>
+							</Switch>
+						</Suspense>
+					</Container>
+				</div>
+			</>
+		);
+	}
 }
+
+const mapDispatchToProps = {
+	onGetCurrentUser: getCurrentUser,
+};
+
+export default connect(null, mapDispatchToProps)(App);

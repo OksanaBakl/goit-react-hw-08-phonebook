@@ -19,7 +19,6 @@ const HomeView = () => (
 	<div style={styles.container}>
 		<h1 style={styles.title}>
 			Welcome page <span role="img" aria-label="welcomeIcon"></span>
-			{/* <ContactPhoneIcon style={{ fontSize: 40 }} /> */}
 		</h1>
 	</div>
 );
